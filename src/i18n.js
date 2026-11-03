@@ -1,0 +1,173 @@
+// Texts of the section. German for a German app, English for every other
+// language; `locale` is also the language dates are written in.
+
+const plural = (count, one, other) => (count === 1 ? one : other);
+
+const de = {
+  locale: 'de',
+  loading: 'Lade Nutzungswerte …',
+  none: 'Keiner deiner Anbieter meldet ein 7-Tage-Limit.',
+  windows: { '7d': '7-Tage-Limit', weekly: 'Wöchentlich' },
+  today: 'heute',
+  tomorrow: 'morgen',
+  ok: 'reicht',
+  tight: 'wird knapp',
+  untilReset: (percent) => `Prognose ${percent} bis zum Reset`,
+  projected: (percent) => `Prognose ${percent}`,
+  runsOut: (when) => `leer ab ${when}`,
+  exhausted: 'Limit erreicht',
+  early: (when) => `Prognose ab ${when}`,
+  reset: 'Zurückgesetzt, neue Werte folgen',
+  unknown: 'Keine Prognose möglich',
+  updated: (time) => `Stand ${time}`,
+  refresh: 'Neu laden',
+  refreshFailed: 'Neu laden fehlgeschlagen',
+  stale: (time) => `Werte von ${time}, neu laden fehlgeschlagen`,
+  unavailable: (reason) => `Werte nicht abrufbar: ${reason}`,
+  duration: (hours) => {
+    const days = Math.floor(hours / 24);
+    const rest = hours % 24;
+    if (days === 0) return `${rest} Std.`;
+    const dayText = `${days} ${plural(days, 'Tag', 'Tage')}`;
+    return rest === 0 ? dayText : `${dayText} ${rest} Std.`;
+  },
+  tooltip: {
+    pace: (used, elapsed) => `${used} verbraucht, ${elapsed} der Woche sind vorbei.`,
+    projection: (projected, reset) => `Im selben Tempo sind es ${projected} beim Reset (${reset}).`,
+    runsOut: (when, gap) => `Im selben Tempo ist das Limit ab ${when} leer, ${gap} vor dem Reset.`,
+    early: (when) => `Die Prognose beginnt ${when}, einen Tag nach dem Reset. Vorher sagt das Tempo zu wenig über die Woche.`,
+    exhausted: 'Das Limit ist aufgebraucht.',
+    resetAt: (reset) => `Reset: ${reset}.`,
+    reset: 'Die Woche hat neu begonnen. Die nächste Abfrage zeigt die neuen Werte.',
+    unknown: 'OpenChamber meldet für dieses Limit keinen Anteil oder keinen Reset-Zeitpunkt.',
+    mark: 'Der Strich zeigt, wie viel bei gleichmäßiger Nutzung bis jetzt dran wäre.',
+  },
+  reasons: {
+    timeout: 'keine Antwort in 15 Sekunden',
+    unreachable: 'OpenChamber antwortet nicht',
+    denied: 'OpenChamber verlangt eine Anmeldung',
+    provider: 'Fehler beim Anbieter',
+    failed: 'unbekannter Fehler',
+  },
+  errors: {
+    service: 'Der Dienst der Erweiterung antwortet gerade nicht. Ein neuer Versuch folgt.',
+    settings: 'Die Einstellungen von OpenChamber sind nicht lesbar.',
+    port: 'Der lokale Port von OpenChamber ist unbekannt.',
+    unreachable: 'OpenChamber antwortet nicht. Ein neuer Versuch folgt.',
+    timeout: 'OpenChamber antwortet zu langsam. Ein neuer Versuch folgt.',
+    denied: 'OpenChamber verlangt eine Anmeldung. Ist ein Passwort für die Oberfläche gesetzt?',
+    failed: 'Die Nutzungswerte sind nicht abrufbar. Ein neuer Versuch folgt.',
+  },
+  panel: {
+    intro: 'Einstellungen für den Abschnitt „Limit-Prognose“ im Arbeitsstatus-Panel. Änderungen gelten sofort.',
+    providers: 'Anbieter',
+    providersHint: 'Der Abschnitt zeigt davon nur Anbieter, die ein 7-Tage-Limit melden.',
+    following: 'Zurzeit dieselbe Auswahl wie im Abschnitt „Nutzung“.',
+    followUsage: 'Auswahl aus „Nutzung“ übernehmen',
+    noWeekly: 'meldet kein 7-Tage-Limit',
+    providersUnavailable: (reason) => `Anbieter nicht abrufbar: ${reason}`,
+    display: 'Darstellung',
+    textSize: 'Schriftgröße',
+    textSizeHint: 'Stell denselben Wert ein wie in den Einstellungen von OpenChamber unter „Schriftgröße der Benutzeroberfläche“. OpenChamber gibt ihn nicht an Erweiterungen weiter. Die Abstände passt der Abschnitt selbst an.',
+    barHeight: 'Leistenhöhe',
+    barHeightOption: (px) => (px === 4 ? `${px} px, wie „Kontext“` : `${px} px`),
+    reading: 'Aktualisierung',
+    interval: 'Neu laden alle',
+    intervalOption: (minutes) => `${minutes} Minuten`,
+    intervalHint: 'Jede Abfrage geht bis zum Anbieter durch. Kürzere Abstände bedeuten mehr Anfragen dort.',
+    legend: 'So liest du die Leiste',
+    legendItems: [
+      'Volle Farbe: schon verbraucht.',
+      'Helle Verlängerung: was bis zum Reset noch dazukommt, wenn du im bisherigen Tempo weiterarbeitest. Das Tempo ist der Durchschnitt seit dem letzten Reset, Nächte und Pausen eingerechnet.',
+      'Strich: wie viel bei gleichmäßiger Nutzung bis jetzt dran wäre. Liegt die Füllung links davon, reicht das Limit.',
+      'Grün reicht (Prognose unter 85 %), Gelb wird knapp (85 bis 100 %), Rot reicht nicht. Am ersten Tag nach einem Reset gibt es noch keine Prognose, die Leiste ist dann grau.',
+    ],
+    saveFailed: 'Speichern fehlgeschlagen. Wähl den Wert noch einmal, um es erneut zu versuchen.',
+    serviceDown: 'Der Dienst der Erweiterung antwortet nicht.',
+  },
+};
+
+const en = {
+  locale: 'en',
+  loading: 'Loading usage …',
+  none: 'None of your providers reports a 7-day limit.',
+  windows: { '7d': '7-Day Limit', weekly: 'Weekly' },
+  today: 'today',
+  tomorrow: 'tomorrow',
+  ok: 'lasts',
+  tight: 'gets tight',
+  untilReset: (percent) => `Forecast ${percent} at reset`,
+  projected: (percent) => `Forecast ${percent}`,
+  runsOut: (when) => `runs out ${when}`,
+  exhausted: 'Limit reached',
+  early: (when) => `Forecast from ${when}`,
+  reset: 'Reset, new values follow',
+  unknown: 'No forecast possible',
+  updated: (time) => `As of ${time}`,
+  refresh: 'Refresh',
+  refreshFailed: 'Refresh failed',
+  stale: (time) => `Values from ${time}, refresh failed`,
+  unavailable: (reason) => `Usage unavailable: ${reason}`,
+  duration: (hours) => {
+    const days = Math.floor(hours / 24);
+    const rest = hours % 24;
+    if (days === 0) return `${rest} h`;
+    return rest === 0 ? `${days} d` : `${days} d ${rest} h`;
+  },
+  tooltip: {
+    pace: (used, elapsed) => `${used} used, ${elapsed} of the week has passed.`,
+    projection: (projected, reset) => `At this pace it reaches ${projected} at the reset (${reset}).`,
+    runsOut: (when, gap) => `At this pace the limit runs out ${when}, ${gap} before the reset.`,
+    early: (when) => `The forecast starts ${when}, one day after the reset. Before that the pace says too little about the week.`,
+    exhausted: 'The limit is used up.',
+    resetAt: (reset) => `Reset: ${reset}.`,
+    reset: 'A new week has begun. The next reading shows its values.',
+    unknown: 'OpenChamber reports no share or no reset time for this limit.',
+    mark: 'The mark shows how much an even pace would have used by now.',
+  },
+  reasons: {
+    timeout: 'no answer within 15 seconds',
+    unreachable: 'OpenChamber does not answer',
+    denied: 'OpenChamber asks for a sign-in',
+    provider: 'provider error',
+    failed: 'unknown error',
+  },
+  errors: {
+    service: 'The extension service does not answer right now. It will try again.',
+    settings: 'OpenChamber settings cannot be read.',
+    port: 'The local port of OpenChamber is unknown.',
+    unreachable: 'OpenChamber does not answer. It will try again.',
+    timeout: 'OpenChamber answers too slowly. It will try again.',
+    denied: 'OpenChamber asks for a sign-in. Is a UI password set?',
+    failed: 'The usage cannot be read. It will try again.',
+  },
+  panel: {
+    intro: 'Settings for the Limit-Prognose section in the Work Status panel. Changes apply at once.',
+    providers: 'Providers',
+    providersHint: 'The section shows only those that report a 7-day limit.',
+    following: 'Currently the same choice as in the Usage section.',
+    followUsage: 'Use the choice from Usage',
+    noWeekly: 'reports no 7-day limit',
+    providersUnavailable: (reason) => `Providers unavailable: ${reason}`,
+    display: 'Display',
+    textSize: 'Text size',
+    textSizeHint: 'Set the same value as OpenChamber\'s "Interface font size". OpenChamber does not pass it to extensions. The section adjusts its spacing itself.',
+    barHeight: 'Bar height',
+    barHeightOption: (px) => (px === 4 ? `${px} px, like Context` : `${px} px`),
+    reading: 'Updates',
+    interval: 'Refresh every',
+    intervalOption: (minutes) => `${minutes} minutes`,
+    intervalHint: 'Every reading reaches the provider. Shorter intervals mean more requests there.',
+    legend: 'Reading the bar',
+    legendItems: [
+      'Solid colour: used so far.',
+      'Light extension: what the current pace adds until the reset. The pace is the average since the last reset, nights and breaks included.',
+      'Mark: how much an even pace would have used by now. A fill left of it means the limit lasts.',
+      'Green lasts (forecast below 85%), yellow gets tight (85 to 100%), red runs out. The first day after a reset has no forecast yet, and the bar is grey.',
+    ],
+    saveFailed: 'Saving failed. Choose again to retry.',
+    serviceDown: 'The extension service does not answer.',
+  },
+};
+
+export const messagesFor = (locale) => (String(locale ?? '').toLowerCase().startsWith('de') ? de : en);

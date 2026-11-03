@@ -1,0 +1,38 @@
+{
+  "name": "limit-prognose",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Prognose im Arbeitsstatus-Panel von OpenChamber: Reicht das 7-Tage-Limit bei der aktuellen Nutzung bis zum Reset?",
+  "openchamber": {
+    "apiVersion": 1,
+    "engines": {
+      "openchamber": ">=2.6.0"
+    },
+    "contributes": {
+      "panel": {
+        "id": "limit-prognose",
+        "name": "Limit-Prognose",
+        "icon": "line-chart",
+        "entry": "panel/index.html"
+      },
+      "statusSection": {
+        "entry": "status/index.html",
+        "title": "Limit-Prognose",
+        "height": 150
+      },
+      "service": {
+        "entry": "service/main.js",
+        "runtime": "host"
+      }
+    }
+  },
+  "scripts": {
+    "build": "esbuild src/status.js --bundle --format=iife --platform=browser --target=es2022 --outfile=status/main.js && esbuild src/panel.js --bundle --format=iife --platform=browser --target=es2022 --outfile=panel/main.js && esbuild src/preview.js --bundle --format=iife --platform=browser --target=es2022 --outfile=preview/main.js",
+    "test": "node --test \"test/*.test.js\""
+  },
+  "devDependencies": {
+    "@openchamber/sdk": "2.6.0",
+    "esbuild": "0.28.2"
+  }
+}

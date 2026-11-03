@@ -1,0 +1,8 @@
+# Dependencies for building and testing
+node_modules/
+
+# Personal settings and usage history, written by the service at runtime
+daten/
+
+# Development preview, built by `npm run build`
+preview/main.js
