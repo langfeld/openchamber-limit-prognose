@@ -7,9 +7,10 @@ Erweiterung für OpenChamber (ab 2.6.0). Sie zeigt im Arbeitsstatus-Panel rechts
 - **Volle Farbe:** schon verbraucht.
 - **Helle Verlängerung:** was bis zum Reset noch dazukommt, wenn du im bisherigen Tempo weiterarbeitest.
 - **Strich:** wie viel bei gleichmäßiger Nutzung bis jetzt dran wäre. Liegt die Füllung links davon, reicht das Limit.
+- **Lücken (Tagesmarken):** teilen die Leiste in die sieben Tage seit dem Reset. Jeder Abschnitt ist das Budget eines Tages. Der Strich steht im Abschnitt des laufenden Tages. Reicht die Füllung über dessen Ende hinaus, nutzt du schon das Budget der folgenden Tage.
 - **Farbe:** Grün reicht (Prognose unter 85 %). Gelb wird knapp (85 bis 100 %). Rot reicht nicht, darunter steht, ab wann das Limit leer ist.
 
-Das Tempo ist der Durchschnitt seit dem letzten Reset, Nächte und Pausen eingerechnet. Am ersten Tag nach einem Reset gibt es noch keine Prognose, die Leiste ist dann grau. Fährst du mit der Maus über ein Limit, erscheint ein Hinweis mit den genauen Zahlen. 🗘 im Kopf des Abschnitts lädt sofort neu.
+Das Tempo ist der Durchschnitt seit dem letzten Reset, Nächte und Pausen eingerechnet. Am ersten Tag nach einem Reset gibt es noch keine Prognose, die Leiste ist dann grau. Fährst du mit der Maus über ein Limit, erscheint ein Hinweis mit den genauen Zahlen, mit Tagesmarken auch der laufende Tag und wie vielen Tagen Budget der Verbrauch entspricht. 🗘 im Kopf des Abschnitts lädt sofort neu.
 
 ## Installation
 
@@ -26,8 +27,9 @@ Danach erscheint der Abschnitt „Limit-Prognose“ im Arbeitsstatus-Panel recht
 Das Icon der Erweiterung in der rechten Leiste öffnet ihre Einstellungen. Jede Änderung gilt sofort.
 
 - **Anbieter:** Anfangs dieselbe Auswahl wie im Abschnitt „Nutzung“. Sobald du hier etwas änderst, gilt die eigene Auswahl. „Auswahl aus ‚Nutzung‘ übernehmen“ stellt das zurück. Der Abschnitt zeigt nur Anbieter, die ein Wochenlimit melden.
-- **Schriftgröße:** OpenChamber gibt die Einstellung „Schriftgröße der Benutzeroberfläche“ nicht an Erweiterungen weiter. Stell hier denselben Wert ein. Die Abstände passt der Abschnitt selbst an: Er errechnet sie aus der Breite des Panels, die mit der Einstellung „Abstände“ wächst.
+- **Schriftgröße:** Stell hier denselben Wert ein wie in OpenChamber unter „Schriftgröße der Benutzeroberfläche“. Die Abstände passt der Abschnitt selbst an: Er errechnet sie aus der Breite des Panels, die mit der Einstellung „Abstände“ wächst.
 - **Leistenhöhe:** 4 px entspricht der Leiste unter „Kontext“.
+- **Tagesmarken:** schalten die Lücken für die Tage seit dem Reset ein oder aus. Ab Werk an.
 - **Neu laden alle:** 5 bis 60 Minuten. Nach einem Fehler und wenn eine Prognose beginnt, lädt der Abschnitt von selbst früher.
 
 ## Aufbau
@@ -38,10 +40,10 @@ Das Icon der Erweiterung in der rechten Leiste öffnet ihre Einstellungen. Jede 
 | `service/main.js` | Kleiner Dienst, den OpenChamber startet. Er liest Port und Auswahl aus `~/.config/openchamber/settings.json` und `preferences.json`, fragt die Nutzung bei OpenChamber selbst ab (`/api/quota/…`) und verwaltet die Einstellungen. |
 | `service/forecast.js` | Die Rechnung |
 | `service/settings.js` | Die Einstellungen und ihre erlaubten Werte |
-| `src/` | Abschnitt (`status.js`) und Einstellungs-Panel (`panel.js`). `status/main.js` und `panel/main.js` werden daraus gebaut. |
+| `src/` | Abschnitt (`status.js`, Leiste in `render.js`, Tagesmarken in `day-marks.js`) und Einstellungs-Panel (`panel.js`). `status/main.js` und `panel/main.js` werden daraus gebaut. |
 | `daten/einstellungen.json` | Deine Einstellungen. Legt der Dienst an, gehört nicht ins Repo. |
 | `daten/verlauf.jsonl` | Pro Limit und Stunde eine Zeile mit Verbrauch und Prognose. Daraus lässt sich später nachrechnen, wie gut die Prognose getroffen hat. Legt der Dienst an, gehört nicht ins Repo. |
-| `test/` | Tests für Rechnung, Dienst, Einstellungen und Größen |
+| `test/` | Tests für Rechnung, Dienst, Einstellungen, Größen und Tagesmarken |
 | `preview/` | Vorschau ohne OpenChamber, nur zum Entwickeln |
 
 Zum Entwickeln einmal `npm install`. Nach einer Änderung an `src/`: `npm run build`. OpenChamber lädt Ordner-Erweiterungen danach von selbst neu. Tests: `npm test`.

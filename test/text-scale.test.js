@@ -32,12 +32,14 @@ describe('sizes', () => {
     assert.equal(rootFontSize(110), '17.6px');
   });
 
-  it('draws bar and mark in whole device pixels', () => {
+  it('draws bar, mark and day gap in whole device pixels', () => {
     // 4px at 110% would be 4.4px, which draws as 4 or 5 pixels depending on where the bar lands.
-    assert.deepEqual(barGeometry({ barHeight: 4, textSize: 110, spaceScale: 1 }), { bar: 4, mark: 11, markWidth: 2, markTop: -4 });
-    assert.deepEqual(barGeometry({ barHeight: 4, textSize: 100, spaceScale: 1 }), { bar: 4, mark: 10, markWidth: 2, markTop: -3 });
+    assert.deepEqual(barGeometry({ barHeight: 4, textSize: 110, spaceScale: 1 }), { bar: 4, mark: 11, markWidth: 2, markTop: -4, dayGap: 1 });
+    assert.deepEqual(barGeometry({ barHeight: 4, textSize: 100, spaceScale: 1 }), { bar: 4, mark: 10, markWidth: 2, markTop: -3, dayGap: 1 });
     // On a screen with two device pixels per CSS pixel, half pixels are whole ones.
-    assert.deepEqual(barGeometry({ barHeight: 4, textSize: 110, spaceScale: 1, dpr: 2 }), { bar: 4.5, mark: 11, markWidth: 2, markTop: -3.5 });
+    assert.deepEqual(barGeometry({ barHeight: 4, textSize: 110, spaceScale: 1, dpr: 2 }), { bar: 4.5, mark: 11, markWidth: 2, markTop: -3.5, dayGap: 1 });
     assert.equal(barGeometry({ barHeight: 6, textSize: 110, spaceScale: 1.225 }).bar, 8);
+    // The gap grows with large text like everything else.
+    assert.equal(barGeometry({ barHeight: 4, textSize: 150, spaceScale: 1 }).dayGap, 2);
   });
 });

@@ -12,6 +12,8 @@ export const DEFAULT_SETTINGS = Object.freeze({
   textSize: 100,
   barHeight: 4,
   interval: 10,
+  /** Gaps in the bar where each day since the reset ends. */
+  dayMarks: true,
   /** Provider ids to show; null follows the choice in OpenChamber's Usage section. */
   providers: null,
 });
@@ -31,6 +33,7 @@ export const normalizeSettings = (value) => {
     textSize: pick(source.textSize, TEXT_SIZES, DEFAULT_SETTINGS.textSize),
     barHeight: pick(source.barHeight, BAR_HEIGHTS, DEFAULT_SETTINGS.barHeight),
     interval: pick(source.interval, INTERVALS, DEFAULT_SETTINGS.interval),
+    dayMarks: typeof source.dayMarks === 'boolean' ? source.dayMarks : DEFAULT_SETTINGS.dayMarks,
     providers,
   };
 };

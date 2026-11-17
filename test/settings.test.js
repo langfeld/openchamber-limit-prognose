@@ -4,20 +4,20 @@ import { describe, it } from 'node:test';
 import { BAR_HEIGHTS, DEFAULT_SETTINGS, INTERVALS, normalizeSettings, TEXT_SIZES } from '../service/settings.js';
 
 describe('normalizeSettings', () => {
-  it('starts from the defaults: 100%, the Context meter\'s 4px, ten minutes, the Usage choice', () => {
-    assert.deepEqual(normalizeSettings(null), { textSize: 100, barHeight: 4, interval: 10, providers: null });
+  it('starts from the defaults: 100%, the Context meter\'s 4px, ten minutes, day marks, the Usage choice', () => {
+    assert.deepEqual(normalizeSettings(null), { textSize: 100, barHeight: 4, interval: 10, dayMarks: true, providers: null });
     assert.deepEqual(normalizeSettings('nonsense'), normalizeSettings(undefined));
     assert.deepEqual(normalizeSettings([]), { ...DEFAULT_SETTINGS });
   });
 
   it('keeps allowed values and replaces the others with defaults', () => {
     assert.deepEqual(
-      normalizeSettings({ textSize: 110, barHeight: 6, interval: 30, providers: ['claude'] }),
-      { textSize: 110, barHeight: 6, interval: 30, providers: ['claude'] },
+      normalizeSettings({ textSize: 110, barHeight: 6, interval: 30, dayMarks: false, providers: ['claude'] }),
+      { textSize: 110, barHeight: 6, interval: 30, dayMarks: false, providers: ['claude'] },
     );
     assert.deepEqual(
-      normalizeSettings({ textSize: 108, barHeight: '4', interval: 1, providers: 'claude' }),
-      { textSize: 100, barHeight: 4, interval: 10, providers: null },
+      normalizeSettings({ textSize: 108, barHeight: '4', interval: 1, dayMarks: 'off', providers: 'claude' }),
+      { textSize: 100, barHeight: 4, interval: 10, dayMarks: true, providers: null },
     );
   });
 

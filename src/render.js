@@ -3,8 +3,10 @@
 //
 // The bar holds three readings: the solid part is what is used, the light part
 // what the current pace adds until the reset, and the mark where an even pace
-// would stand now. A fill left of the mark means the limit lasts.
+// would stand now. A fill left of the mark means the limit lasts. Optional
+// gaps split it into the days since the reset (`day-marks.js`).
 
+import { dayFractions, dayMaskImage, dayProgress } from './day-marks.js';
 import { formatDuration, formatMoment, formatPercent, formatReset, formatStamp } from './format.js';
 import { PROVIDER_LOGOS } from './logos.js';
 
@@ -65,22 +67,32 @@ const caption = (window, now, messages) => {
   return node;
 };
 
-const tooltip = (window, now, messages) => {
+/** „Tag 2 von 7; verbraucht ist das Budget von 1,4 Tagen.“ for a window that is running. */
+const dayLine = (window, messages) => {
+  const progress = dayProgress(window);
+  if (!progress) return null;
+  const budget = new Intl.NumberFormat(messages.locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+    .format(progress.budgetDays);
+  return messages.tooltip.day(progress.day, progress.days, budget);
+};
+
+const tooltip = (window, now, messages, dayMarks) => {
   const text = messages.tooltip;
   const reset = window.resetAt === null ? null : formatReset(window.resetAt, now, messages);
   const pace = window.elapsedPercent === null
     ? null
     : text.pace(formatPercent(window.usedPercent), formatPercent(window.elapsedPercent));
+  const day = dayMarks ? dayLine(window, messages) : null;
   const lines = [];
   if (window.status === 'ok' || window.status === 'tight') {
-    lines.push(pace, text.projection(formatPercent(window.projectedPercent), reset));
+    lines.push(pace, day, text.projection(formatPercent(window.projectedPercent), reset));
   } else if (window.status === 'over') {
-    lines.push(pace, text.runsOut(
+    lines.push(pace, day, text.runsOut(
       formatMoment(window.exhaustAt, now, messages),
       formatDuration(window.resetAt - window.exhaustAt, messages),
     ));
   } else if (window.status === 'early') {
-    lines.push(pace, text.early(formatMoment(window.forecastFrom, now, messages)));
+    lines.push(pace, day, text.early(formatMoment(window.forecastFrom, now, messages)));
   } else if (window.status === 'exhausted') {
     lines.push(text.exhausted, reset === null ? null : text.resetAt(reset));
   } else if (window.status === 'reset') {
@@ -92,7 +104,11 @@ const tooltip = (window, now, messages) => {
   return lines.filter(Boolean).join('\n');
 };
 
-const bar = (window) => {
+/**
+ * Track, forecast and fill sit in one layer, which the day marks cut; the mark
+ * stands above it, so the gaps never cut through the mark.
+ */
+const bar = (window, dayMarks) => {
   const used = Math.max(0, Math.min(100, window.usedPercent ?? 0));
   const node = el('div', 'lp-bar');
   node.dataset.tone = STATUS_TONE[window.status] ?? usageTone(used);
@@ -100,14 +116,18 @@ const bar = (window) => {
   node.setAttribute('aria-valuemin', '0');
   node.setAttribute('aria-valuemax', '100');
   node.setAttribute('aria-valuenow', String(Math.round(used)));
+  const track = el('div', 'lp-track');
+  const mask = dayMarks ? dayMaskImage(dayFractions(window.windowMs)) : null;
+  if (mask) track.style.setProperty('mask-image', mask);
   if (window.projectedPercent !== null) {
     const forecast = el('span', 'lp-forecast');
     forecast.style.width = `${Math.min(100, window.projectedPercent)}%`;
-    node.append(forecast);
+    track.append(forecast);
   }
   const fill = el('span', 'lp-used');
   fill.style.width = `${used}%`;
-  node.append(fill);
+  track.append(fill);
+  node.append(track);
   if (window.elapsedPercent !== null && window.status !== 'exhausted') {
     const mark = el('span', 'lp-mark');
     mark.style.insetInlineStart = `${window.elapsedPercent}%`;
@@ -116,7 +136,7 @@ const bar = (window) => {
   return node;
 };
 
-const renderWindow = (window, now, messages) => {
+const renderWindow = (window, now, messages, dayMarks) => {
   const valueTone = window.status === 'tight' || window.status === 'over' || window.status === 'exhausted'
     ? STATUS_TONE[window.status]
     : window.status !== 'ok' && window.usedPercent !== null && window.usedPercent >= 50
@@ -139,8 +159,8 @@ const renderWindow = (window, now, messages) => {
     ),
     value,
   );
-  const node = el('div', 'lp-window', row, bar(window), caption(window, now, messages));
-  node.title = tooltip(window, now, messages);
+  const node = el('div', 'lp-window', row, bar(window, dayMarks), caption(window, now, messages));
+  node.title = tooltip(window, now, messages, dayMarks);
   return node;
 };
 
@@ -152,13 +172,13 @@ const reason = (failure, messages) => {
 
 /**
  * @param {{ data: object | null, problem: string | null, loading: boolean, reading: boolean,
- *   messages: object, now: number, onRefresh: (() => void) | null }} state
+ *   messages: object, now: number, dayMarks: boolean, onRefresh: (() => void) | null }} state
  * `data` is the service's newest answer and `problem` the message key of the
  * latest failed request; a failure after a good answer keeps that answer on
- * screen. `onRefresh` draws a refresh control of its own, for a host that
- * takes no header controls.
+ * screen. `dayMarks` cuts the bars at the end of each day. `onRefresh` draws a
+ * refresh control of its own, for a host that takes no header controls.
  */
-export const renderSection = ({ data, problem, loading, reading, messages, now, onRefresh }) => {
+export const renderSection = ({ data, problem, loading, reading, messages, now, dayMarks, onRefresh }) => {
   const root = el('div', 'lp');
   if (!data) {
     root.append(el('p', 'lp-note', loading ? messages.loading : (messages.errors[problem] ?? messages.errors.failed)));
@@ -179,7 +199,7 @@ export const renderSection = ({ data, problem, loading, reading, messages, now, 
       note.title = reason(provider.stale, messages);
       root.append(note);
     }
-    for (const window of provider.windows) root.append(renderWindow(window, now, messages));
+    for (const window of provider.windows) root.append(renderWindow(window, now, messages, dayMarks));
   }
   const foot = el('p', 'lp-foot', messages.updated(formatStamp(data.fetchedAt, now, messages)));
   if (problem) {

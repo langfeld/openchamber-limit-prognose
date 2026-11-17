@@ -62,5 +62,7 @@ export const barGeometry = ({ barHeight, textSize, spaceScale, dpr = 1 }) => {
     mark,
     markWidth: snap(2 * factor),
     markTop: -Math.round(((mark - bar) / 2) * dpr) / dpr,
+    /** The day marks' gap, 1px at 100%. */
+    dayGap: snap(factor),
   };
 };

@@ -2219,6 +2219,7 @@ ${GUEST_UI_LOOK_CSS}`;
     };
   };
   var mountCheckbox = (root2, initial) => mountToggle(root2, initial, "checkbox");
+  var mountSwitch = (root2, initial) => mountToggle(root2, initial, "switch");
 
   // service/settings.js
   var TEXT_SIZES = [75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 140, 150, 175, 200];
@@ -2228,6 +2229,8 @@ ${GUEST_UI_LOOK_CSS}`;
     textSize: 100,
     barHeight: 4,
     interval: 10,
+    /** Gaps in the bar where each day since the reset ends. */
+    dayMarks: true,
     /** Provider ids to show; null follows the choice in OpenChamber's Usage section. */
     providers: null
   });
@@ -2241,6 +2244,7 @@ ${GUEST_UI_LOOK_CSS}`;
       textSize: pick(source.textSize, TEXT_SIZES, DEFAULT_SETTINGS.textSize),
       barHeight: pick(source.barHeight, BAR_HEIGHTS, DEFAULT_SETTINGS.barHeight),
       interval: pick(source.interval, INTERVALS, DEFAULT_SETTINGS.interval),
+      dayMarks: typeof source.dayMarks === "boolean" ? source.dayMarks : DEFAULT_SETTINGS.dayMarks,
       providers
     };
   };
@@ -2284,7 +2288,8 @@ ${GUEST_UI_LOOK_CSS}`;
       resetAt: (reset) => `Reset: ${reset}.`,
       reset: "Die Woche hat neu begonnen. Die n\xE4chste Abfrage zeigt die neuen Werte.",
       unknown: "OpenChamber meldet f\xFCr dieses Limit keinen Anteil oder keinen Reset-Zeitpunkt.",
-      mark: "Der Strich zeigt, wie viel bei gleichm\xE4\xDFiger Nutzung bis jetzt dran w\xE4re."
+      mark: "Der Strich zeigt, wie viel bei gleichm\xE4\xDFiger Nutzung bis jetzt dran w\xE4re.",
+      day: (day, days, budget) => `Tag ${day} von ${days}; verbraucht ist das Budget von ${budget} Tagen.`
     },
     reasons: {
       timeout: "keine Antwort in 15 Sekunden",
@@ -2312,9 +2317,11 @@ ${GUEST_UI_LOOK_CSS}`;
       providersUnavailable: (reason2) => `Anbieter nicht abrufbar: ${reason2}`,
       display: "Darstellung",
       textSize: "Schriftgr\xF6\xDFe",
-      textSizeHint: "Stell denselben Wert ein wie in den Einstellungen von OpenChamber unter \u201ESchriftgr\xF6\xDFe der Benutzeroberfl\xE4che\u201C. OpenChamber gibt ihn nicht an Erweiterungen weiter. Die Abst\xE4nde passt der Abschnitt selbst an.",
+      textSizeHint: "Stell denselben Wert ein wie in den Einstellungen von OpenChamber unter \u201ESchriftgr\xF6\xDFe der Benutzeroberfl\xE4che\u201C. Die Abst\xE4nde passt der Abschnitt selbst an.",
       barHeight: "Leistenh\xF6he",
       barHeightOption: (px) => px === 4 ? `${px} px, wie \u201EKontext\u201C` : `${px} px`,
+      dayMarks: "Tagesmarken",
+      dayMarksHint: "L\xFCcken teilen die Leiste in die sieben Tage seit dem Reset.",
       reading: "Aktualisierung",
       interval: "Neu laden alle",
       intervalOption: (minutes) => `${minutes} Minuten`,
@@ -2324,6 +2331,7 @@ ${GUEST_UI_LOOK_CSS}`;
         "Volle Farbe: schon verbraucht.",
         "Helle Verl\xE4ngerung: was bis zum Reset noch dazukommt, wenn du im bisherigen Tempo weiterarbeitest. Das Tempo ist der Durchschnitt seit dem letzten Reset, N\xE4chte und Pausen eingerechnet.",
         "Strich: wie viel bei gleichm\xE4\xDFiger Nutzung bis jetzt dran w\xE4re. Liegt die F\xFCllung links davon, reicht das Limit.",
+        "L\xFCcken (Tagesmarken): teilen die Leiste in die sieben Tage seit dem Reset, jeder Abschnitt ist das Budget eines Tages. Der Strich steht im Abschnitt des laufenden Tages. Reicht die F\xFCllung \xFCber dessen Ende hinaus, nutzt du schon das Budget der folgenden Tage.",
         "Gr\xFCn reicht (Prognose unter 85 %), Gelb wird knapp (85 bis 100 %), Rot reicht nicht. Am ersten Tag nach einem Reset gibt es noch keine Prognose, die Leiste ist dann grau."
       ],
       saveFailed: "Speichern fehlgeschlagen. W\xE4hl den Wert noch einmal, um es erneut zu versuchen.",
@@ -2366,7 +2374,8 @@ ${GUEST_UI_LOOK_CSS}`;
       resetAt: (reset) => `Reset: ${reset}.`,
       reset: "A new week has begun. The next reading shows its values.",
       unknown: "OpenChamber reports no share or no reset time for this limit.",
-      mark: "The mark shows how much an even pace would have used by now."
+      mark: "The mark shows how much an even pace would have used by now.",
+      day: (day, days, budget) => `Day ${day} of ${days}; the use equals ${budget} days of budget.`
     },
     reasons: {
       timeout: "no answer within 15 seconds",
@@ -2394,9 +2403,11 @@ ${GUEST_UI_LOOK_CSS}`;
       providersUnavailable: (reason2) => `Providers unavailable: ${reason2}`,
       display: "Display",
       textSize: "Text size",
-      textSizeHint: `Set the same value as OpenChamber's "Interface font size". OpenChamber does not pass it to extensions. The section adjusts its spacing itself.`,
+      textSizeHint: `Set the same value as OpenChamber's "Interface font size". The section adjusts its spacing itself.`,
       barHeight: "Bar height",
       barHeightOption: (px) => px === 4 ? `${px} px, like Context` : `${px} px`,
+      dayMarks: "Day marks",
+      dayMarksHint: "Gaps split the bar into the seven days since the reset.",
       reading: "Updates",
       interval: "Refresh every",
       intervalOption: (minutes) => `${minutes} minutes`,
@@ -2406,6 +2417,7 @@ ${GUEST_UI_LOOK_CSS}`;
         "Solid colour: used so far.",
         "Light extension: what the current pace adds until the reset. The pace is the average since the last reset, nights and breaks included.",
         "Mark: how much an even pace would have used by now. A fill left of it means the limit lasts.",
+        "Gaps (day marks): split the bar into the seven days since the reset; each part is one day's budget. The mark stands in the part of the current day. A fill past its end already uses the budget of the days ahead.",
         "Green lasts (forecast below 85%), yellow gets tight (85 to 100%), red runs out. The first day after a reset has no forecast yet, and the bar is grey."
       ],
       saveFailed: "Saving failed. Choose again to retry.",
@@ -2548,6 +2560,12 @@ body { font-family: var(--oc-font, system-ui, sans-serif); color: var(--oc-fg, C
       value: String(settings.barHeight),
       options: BAR_HEIGHTS.map((px) => ({ id: String(px), label: text.barHeightOption(px) })),
       onChange: (id) => void save({ barHeight: Number(id) })
+    });
+    mount(display, mountSwitch, {
+      label: text.dayMarks,
+      description: text.dayMarksHint,
+      checked: settings.dayMarks,
+      onChange: (checked) => void save({ dayMarks: checked })
     });
     panel.append(display);
     const reading = document.createElement("section");

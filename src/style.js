@@ -2,11 +2,11 @@
 // Context meter's 4px bar by default), so the sections read as one vocabulary.
 // As in the app, text sizes are in rem and follow the root font size, and
 // spacing is in rem times the spacing factor (`--lp-space`, OpenChamber's
-// `--padding-scale`). Bar and mark come in whole device pixels (`--lp-bar-h`
-// and friends). The page sets all of them (`text-scale.js`). Colours are the
-// host theme's, set on the root by `applyHostReady`. The frame already sits one
-// step in from the panel's edge, like the app's rows, so the content takes no
-// side padding.
+// `--padding-scale`). Bar, mark and the day marks' gap come in whole device
+// pixels (`--lp-bar-h`, `--lp-day-gap` and friends). The page sets all of them
+// (`text-scale.js`). Colours are the host theme's, set on the root by
+// `applyHostReady`. The frame already sits one step in from the panel's edge,
+// like the app's rows, so the content takes no side padding.
 
 const space = (rem) => `calc(${rem}rem * var(--lp-space, 1))`;
 
@@ -35,7 +35,8 @@ body {
 .lp-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lp-reset { flex: none; font-size: 0.6875rem; white-space: nowrap; }
 .lp-value { flex: none; font-variant-numeric: tabular-nums; }
-.lp-bar { position: relative; height: var(--lp-bar-h, 4px); margin-top: ${space(0.375)}; border-radius: 999px; background: var(--oc-border, rgb(128 128 128 / 0.25)); }
+.lp-bar { position: relative; height: var(--lp-bar-h, 4px); margin-top: ${space(0.375)}; }
+.lp-track { position: absolute; inset: 0; overflow: hidden; border-radius: 999px; background: var(--oc-border, rgb(128 128 128 / 0.25)); mask-repeat: no-repeat; mask-composite: exclude; }
 .lp-forecast, .lp-used { position: absolute; top: 0; bottom: 0; inset-inline-start: 0; border-radius: 999px; }
 .lp-forecast { background: color-mix(in srgb, var(--lp-tone) 35%, transparent); }
 .lp-used { background: var(--lp-tone); }

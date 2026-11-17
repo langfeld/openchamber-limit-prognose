@@ -18,7 +18,7 @@ const WEEK = 7 * 24 * 60 * 60 * 1000;
 const READ_BUDGET_MS = 1500;
 const REFRESH_MIN_MS = 300;
 const SETTINGS_WAIT_MS = 400;
-const DEFAULTS = { textSize: 100, barHeight: 4, interval: 10, providers: null };
+const DEFAULTS = { textSize: 100, barHeight: 4, interval: 10, dayMarks: true, providers: null };
 
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 

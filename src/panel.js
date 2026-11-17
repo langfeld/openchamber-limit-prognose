@@ -3,7 +3,7 @@
 // panel follows changes made elsewhere the same way.
 
 import { connectHost } from '@openchamber/sdk';
-import { applyHostReady, mountButton, mountCheckbox, mountSelect } from '@openchamber/sdk/ui';
+import { applyHostReady, mountButton, mountCheckbox, mountSelect, mountSwitch } from '@openchamber/sdk/ui';
 
 import { BAR_HEIGHTS, INTERVALS, normalizeSettings, TEXT_SIZES } from '../service/settings.js';
 import { messagesFor } from './i18n.js';
@@ -162,6 +162,12 @@ const render = () => {
     value: String(settings.barHeight),
     options: BAR_HEIGHTS.map((px) => ({ id: String(px), label: text.barHeightOption(px) })),
     onChange: (id) => void save({ barHeight: Number(id) }),
+  });
+  mount(display, mountSwitch, {
+    label: text.dayMarks,
+    description: text.dayMarksHint,
+    checked: settings.dayMarks,
+    onChange: (checked) => void save({ dayMarks: checked }),
   });
   panel.append(display);
 

@@ -1,6 +1,7 @@
 // Development preview: the section in both Flexoki themes, drawn from quota
 // readings through the service's own forecast code, without OpenChamber.
-// Open preview/index.html after `npm run build`; `?theme=dark&zoom=2` shows one
+// Open preview/index.html after `npm run build`; `?days=0` hides the day
+// marks; `?theme=dark&zoom=2` shows one
 // theme enlarged, `?size=110&space=1.22&bar=4` a text size, a spacing factor
 // and a bar height.
 
@@ -97,6 +98,8 @@ html.style.setProperty('--lp-bar-h', `${geometry.bar}px`);
 html.style.setProperty('--lp-mark-h', `${geometry.mark}px`);
 html.style.setProperty('--lp-mark-w', `${geometry.markWidth}px`);
 html.style.setProperty('--lp-mark-top', `${geometry.markTop}px`);
+html.style.setProperty('--lp-day-gap', `${geometry.dayGap}px`);
+const dayMarks = params.get('days') !== '0';
 const only = params.get('theme');
 
 const messages = messagesFor('de');
@@ -118,7 +121,7 @@ for (const [name, theme] of Object.entries(THEMES)) {
     const frame = document.createElement('div');
     frame.className = 'frame';
     const state = scenario.state(scenario.now);
-    frame.append(renderSection({ data: null, problem: null, loading: false, reading: false, onRefresh: null, ...state, messages, now: scenario.now }));
+    frame.append(renderSection({ data: null, problem: null, loading: false, reading: false, onRefresh: null, ...state, messages, now: scenario.now, dayMarks }));
     panel.append(frame);
     box.append(panel);
     section.append(box);

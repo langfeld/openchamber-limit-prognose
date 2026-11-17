@@ -49,6 +49,8 @@ export const forecastWindow = (window, now, windowMs = WEEK_MS) => {
     status: 'unknown',
     usedPercent: used,
     resetAt,
+    /** The window's length, which the day marks divide. */
+    windowMs,
     elapsedPercent: null,
     projectedPercent: null,
     exhaustAt: null,

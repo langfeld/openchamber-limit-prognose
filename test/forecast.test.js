@@ -63,6 +63,9 @@ describe('forecastWindow', () => {
     const result = forecastWindow(window, now, WEEK_MS - HOUR);
     assert.equal(result.elapsedPercent, 50);
     assert.equal(result.projectedPercent, 100);
+    // The day marks divide the same length.
+    assert.equal(result.windowMs, WEEK_MS - HOUR);
+    assert.equal(forecastWindow(weekly(10, 30), now).windowMs, WEEK_MS);
   });
 
   it('gives no projection during the first day', () => {

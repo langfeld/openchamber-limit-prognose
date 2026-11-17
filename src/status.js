@@ -58,6 +58,7 @@ const render = () => {
     reading: inFlight > 0,
     messages,
     now: Date.now(),
+    dayMarks: settings.dayMarks,
     onRefresh: controlsShown ? null : () => void load(true),
   }));
 };
@@ -75,6 +76,7 @@ const applyScale = () => {
   html.style.setProperty('--lp-mark-h', `${geometry.mark}px`);
   html.style.setProperty('--lp-mark-w', `${geometry.markWidth}px`);
   html.style.setProperty('--lp-mark-top', `${geometry.markTop}px`);
+  html.style.setProperty('--lp-day-gap', `${geometry.dayGap}px`);
   frame = {
     width,
     inner: window.innerWidth,
