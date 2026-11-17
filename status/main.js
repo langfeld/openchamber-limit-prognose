@@ -1776,11 +1776,9 @@ ${UI_SIZE_CSS}
 ${GUEST_UI_LOOK_CSS}`;
 
   // service/settings.js
-  var TEXT_SIZES = [75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 140, 150, 175, 200];
   var BAR_HEIGHTS = [3, 4, 5, 6, 8];
   var INTERVALS = [5, 10, 15, 30, 60];
   var DEFAULT_SETTINGS = Object.freeze({
-    textSize: 100,
     barHeight: 4,
     interval: 10,
     /** Gaps in the bar where each day since the reset ends. */
@@ -1795,7 +1793,6 @@ ${GUEST_UI_LOOK_CSS}`;
     const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
     const providers = Array.isArray(source.providers) ? [...new Set(source.providers.filter((id) => typeof id === "string" && PROVIDER_ID.test(id)))].slice(0, PROVIDERS_MAX) : null;
     return {
-      textSize: pick(source.textSize, TEXT_SIZES, DEFAULT_SETTINGS.textSize),
       barHeight: pick(source.barHeight, BAR_HEIGHTS, DEFAULT_SETTINGS.barHeight),
       interval: pick(source.interval, INTERVALS, DEFAULT_SETTINGS.interval),
       dayMarks: typeof source.dayMarks === "boolean" ? source.dayMarks : DEFAULT_SETTINGS.dayMarks,
@@ -1870,8 +1867,6 @@ ${GUEST_UI_LOOK_CSS}`;
       noWeekly: "meldet kein 7-Tage-Limit",
       providersUnavailable: (reason2) => `Anbieter nicht abrufbar: ${reason2}`,
       display: "Darstellung",
-      textSize: "Schriftgr\xF6\xDFe",
-      textSizeHint: "Stell denselben Wert ein wie in den Einstellungen von OpenChamber unter \u201ESchriftgr\xF6\xDFe der Benutzeroberfl\xE4che\u201C. Die Abst\xE4nde passt der Abschnitt selbst an.",
       barHeight: "Leistenh\xF6he",
       barHeightOption: (px) => px === 4 ? `${px} px, wie \u201EKontext\u201C` : `${px} px`,
       dayMarks: "Tagesmarken",
@@ -1956,8 +1951,6 @@ ${GUEST_UI_LOOK_CSS}`;
       noWeekly: "reports no 7-day limit",
       providersUnavailable: (reason2) => `Providers unavailable: ${reason2}`,
       display: "Display",
-      textSize: "Text size",
-      textSizeHint: `Set the same value as OpenChamber's "Interface font size". The section adjusts its spacing itself.`,
       barHeight: "Bar height",
       barHeightOption: (px) => px === 4 ? `${px} px, like Context` : `${px} px`,
       dayMarks: "Day marks",
@@ -2267,10 +2260,16 @@ body {
   var PANEL_WIDTH_PX = 300;
   var INSET_REM = 1.5;
   var BASE_FONT_PX = 16;
+  var BODY_TEXT_REM = 0.875;
   var DEFAULT_SPACING_LEEWAY = 0.03;
-  var spacingScaleFor = (frameWidth, textSize) => {
-    const rootPx = BASE_FONT_PX * textSize / 100;
-    const scale = (PANEL_WIDTH_PX - frameWidth) / INSET_REM / rootPx;
+  var hostRootPx = (fontSize) => {
+    const match = /^(\d+(?:\.\d+)?)px$/.exec(typeof fontSize === "string" ? fontSize.trim() : "");
+    if (!match) return BASE_FONT_PX;
+    const rootPx2 = Math.round(Number(match[1]) / BODY_TEXT_REM * 100) / 100;
+    return rootPx2 >= BASE_FONT_PX * 0.5 && rootPx2 <= BASE_FONT_PX * 2 ? rootPx2 : BASE_FONT_PX;
+  };
+  var spacingScaleFor = (frameWidth, rootPx2) => {
+    const scale = (PANEL_WIDTH_PX - frameWidth) / INSET_REM / rootPx2;
     if (!Number.isFinite(scale) || scale < 0.65 || scale > 1.5) return 1;
     if (Math.abs(scale - 1) <= DEFAULT_SPACING_LEEWAY) return 1;
     return Math.round(scale * 1e3) / 1e3;
@@ -2279,9 +2278,8 @@ body {
     const html = document.documentElement;
     return html.getBoundingClientRect().width + (window.innerWidth - html.clientWidth);
   };
-  var rootFontSize = (textSize) => `${BASE_FONT_PX * textSize / 100}px`;
-  var barGeometry = ({ barHeight, textSize, spaceScale: spaceScale2, dpr = 1 }) => {
-    const factor = textSize / 100 * spaceScale2;
+  var barGeometry = ({ barHeight, rootPx: rootPx2, spaceScale: spaceScale2, dpr = 1 }) => {
+    const factor = rootPx2 / BASE_FONT_PX * spaceScale2;
     const snap = (px) => Math.max(1, Math.round(px * dpr)) / dpr;
     const bar2 = snap(barHeight * factor);
     const mark = snap((barHeight + 6) * factor);
@@ -2317,6 +2315,8 @@ body {
   var controlsSupported = false;
   var controlsShown = false;
   var frame = {};
+  var hostFontSize = null;
+  var rootPx = BASE_FONT_PX;
   var spaceScale = 1;
   var inFlight = 0;
   var requested = 0;
@@ -2337,11 +2337,11 @@ body {
   };
   var applyScale = () => {
     const html = document.documentElement;
-    html.style.fontSize = rootFontSize(settings.textSize);
+    html.style.fontSize = `${rootPx}px`;
     const width = measureFrameWidth();
-    spaceScale = spacingScaleFor(width, settings.textSize);
+    spaceScale = spacingScaleFor(width, rootPx);
     const dpr = window.devicePixelRatio || 1;
-    const geometry = barGeometry({ barHeight: settings.barHeight, textSize: settings.textSize, spaceScale, dpr });
+    const geometry = barGeometry({ barHeight: settings.barHeight, rootPx, spaceScale, dpr });
     html.style.setProperty("--lp-space", String(spaceScale));
     html.style.setProperty("--lp-bar-h", `${geometry.bar}px`);
     html.style.setProperty("--lp-mark-h", `${geometry.mark}px`);
@@ -2353,7 +2353,8 @@ body {
       inner: window.innerWidth,
       client: html.clientWidth,
       dpr,
-      textSize: settings.textSize,
+      fontSize: hostFontSize,
+      rootPx,
       spaceScale,
       bar: geometry.bar
     };
@@ -2462,6 +2463,8 @@ body {
   host.onDirectory(() => publishControls());
   host.onReady((context) => {
     applyHostReady(context, document.documentElement);
+    hostFontSize = context.theme?.tokens?.fontSize ?? null;
+    rootPx = hostRootPx(hostFontSize);
     applyScale();
     messages = messagesFor(context.locale);
     document.documentElement.lang = messages.locale;

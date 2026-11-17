@@ -9,7 +9,7 @@ import { buildForecast } from '../service/forecast.js';
 import { messagesFor } from './i18n.js';
 import { renderSection } from './render.js';
 import { STYLE } from './style.js';
-import { barGeometry, rootFontSize } from './text-scale.js';
+import { BASE_FONT_PX, barGeometry } from './text-scale.js';
 
 // Made-up reset times and usage, not anyone's account.
 const CLAUDE_RESET = new Date('2026-11-09T18:00:00+01:00').getTime(); // Mo., 9. Nov., 18:00
@@ -88,11 +88,12 @@ document.head.append(style);
 const params = new URLSearchParams(location.search);
 const zoom = Number(params.get('zoom'));
 if (zoom > 0) document.body.style.zoom = String(zoom);
-const size = Number(params.get('size')) || 100;
+// `size` stands for OpenChamber's interface font size in percent.
+const rootPx = (BASE_FONT_PX * (Number(params.get('size')) || 100)) / 100;
 const space = Number(params.get('space')) || 1;
-const geometry = barGeometry({ barHeight: Number(params.get('bar')) || 4, textSize: size, spaceScale: space, dpr: window.devicePixelRatio || 1 });
+const geometry = barGeometry({ barHeight: Number(params.get('bar')) || 4, rootPx, spaceScale: space, dpr: window.devicePixelRatio || 1 });
 const html = document.documentElement;
-html.style.fontSize = rootFontSize(size);
+html.style.fontSize = `${rootPx}px`;
 html.style.setProperty('--lp-space', String(space));
 html.style.setProperty('--lp-bar-h', `${geometry.bar}px`);
 html.style.setProperty('--lp-mark-h', `${geometry.mark}px`);

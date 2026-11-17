@@ -2222,11 +2222,9 @@ ${GUEST_UI_LOOK_CSS}`;
   var mountSwitch = (root2, initial) => mountToggle(root2, initial, "switch");
 
   // service/settings.js
-  var TEXT_SIZES = [75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 140, 150, 175, 200];
   var BAR_HEIGHTS = [3, 4, 5, 6, 8];
   var INTERVALS = [5, 10, 15, 30, 60];
   var DEFAULT_SETTINGS = Object.freeze({
-    textSize: 100,
     barHeight: 4,
     interval: 10,
     /** Gaps in the bar where each day since the reset ends. */
@@ -2241,7 +2239,6 @@ ${GUEST_UI_LOOK_CSS}`;
     const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
     const providers = Array.isArray(source.providers) ? [...new Set(source.providers.filter((id) => typeof id === "string" && PROVIDER_ID.test(id)))].slice(0, PROVIDERS_MAX) : null;
     return {
-      textSize: pick(source.textSize, TEXT_SIZES, DEFAULT_SETTINGS.textSize),
       barHeight: pick(source.barHeight, BAR_HEIGHTS, DEFAULT_SETTINGS.barHeight),
       interval: pick(source.interval, INTERVALS, DEFAULT_SETTINGS.interval),
       dayMarks: typeof source.dayMarks === "boolean" ? source.dayMarks : DEFAULT_SETTINGS.dayMarks,
@@ -2316,8 +2313,6 @@ ${GUEST_UI_LOOK_CSS}`;
       noWeekly: "meldet kein 7-Tage-Limit",
       providersUnavailable: (reason2) => `Anbieter nicht abrufbar: ${reason2}`,
       display: "Darstellung",
-      textSize: "Schriftgr\xF6\xDFe",
-      textSizeHint: "Stell denselben Wert ein wie in den Einstellungen von OpenChamber unter \u201ESchriftgr\xF6\xDFe der Benutzeroberfl\xE4che\u201C. Die Abst\xE4nde passt der Abschnitt selbst an.",
       barHeight: "Leistenh\xF6he",
       barHeightOption: (px) => px === 4 ? `${px} px, wie \u201EKontext\u201C` : `${px} px`,
       dayMarks: "Tagesmarken",
@@ -2402,8 +2397,6 @@ ${GUEST_UI_LOOK_CSS}`;
       noWeekly: "reports no 7-day limit",
       providersUnavailable: (reason2) => `Providers unavailable: ${reason2}`,
       display: "Display",
-      textSize: "Text size",
-      textSizeHint: `Set the same value as OpenChamber's "Interface font size". The section adjusts its spacing itself.`,
       barHeight: "Bar height",
       barHeightOption: (px) => px === 4 ? `${px} px, like Context` : `${px} px`,
       dayMarks: "Day marks",
@@ -2426,8 +2419,17 @@ ${GUEST_UI_LOOK_CSS}`;
   };
   var messagesFor = (locale) => String(locale ?? "").toLowerCase().startsWith("de") ? de : en;
 
+  // src/text-scale.js
+  var BASE_FONT_PX = 16;
+  var BODY_TEXT_REM = 0.875;
+  var hostRootPx = (fontSize) => {
+    const match = /^(\d+(?:\.\d+)?)px$/.exec(typeof fontSize === "string" ? fontSize.trim() : "");
+    if (!match) return BASE_FONT_PX;
+    const rootPx = Math.round(Number(match[1]) / BODY_TEXT_REM * 100) / 100;
+    return rootPx >= BASE_FONT_PX * 0.5 && rootPx <= BASE_FONT_PX * 2 ? rootPx : BASE_FONT_PX;
+  };
+
   // src/panel.js
-  var SDK_ROOT_PX = 14;
   var SETTINGS_RETRY_MS = 5 * 1e3;
   var STYLE = `
 :root { color-scheme: light dark; }
@@ -2472,7 +2474,6 @@ body { font-family: var(--oc-font, system-ui, sans-serif); color: var(--oc-fg, C
     if (typeof answer?.version !== "number" || answer.version <= version) return false;
     version = answer.version;
     settings = normalizeSettings(answer.settings);
-    document.documentElement.style.fontSize = `${SDK_ROOT_PX * settings.textSize / 100}px`;
     return true;
   };
   var loadProviders = async () => {
@@ -2549,13 +2550,6 @@ body { font-family: var(--oc-font, system-ui, sans-serif); color: var(--oc-fg, C
     display.className = "lp-group";
     display.append(heading("h2", text.display));
     mount(display, mountSelect, {
-      label: text.textSize,
-      value: String(settings.textSize),
-      options: TEXT_SIZES.map((size) => ({ id: String(size), label: `${size} %` })),
-      onChange: (id) => void save({ textSize: Number(id) })
-    });
-    display.append(muted2(text.textSizeHint));
-    mount(display, mountSelect, {
       label: text.barHeight,
       value: String(settings.barHeight),
       options: BAR_HEIGHTS.map((px) => ({ id: String(px), label: text.barHeightOption(px) })),
@@ -2608,7 +2602,7 @@ body { font-family: var(--oc-font, system-ui, sans-serif); color: var(--oc-fg, C
     applyHostReady(context, document.documentElement);
     messages = messagesFor(context.locale);
     document.documentElement.lang = messages.locale;
-    document.documentElement.style.fontSize = `${SDK_ROOT_PX * settings.textSize / 100}px`;
+    document.documentElement.style.fontSize = `${hostRootPx(context.theme?.tokens?.fontSize) * BODY_TEXT_REM}px`;
     render();
     if (booted) return;
     booted = true;

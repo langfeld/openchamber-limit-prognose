@@ -14,7 +14,7 @@ Das Tempo ist der Durchschnitt seit dem letzten Reset, Nächte und Pausen einger
 
 ## Installation
 
-Voraussetzung ist OpenChamber 2.6.0 oder neuer, als Desktop-App oder im Browser. Die gebauten Dateien liegen im Repo, ein Bauschritt ist nicht nötig.
+Voraussetzung ist OpenChamber 2.6.0 oder neuer, als Desktop-App oder im Browser. Ab 2.7 folgt die Schrift der Erweiterung der von OpenChamber, mit 2.6 bleibt sie bei 100 %. Die gebauten Dateien liegen im Repo, ein Bauschritt ist nicht nötig.
 
 1. Das Repo in einen Ordner deiner Wahl klonen: `git clone https://github.com/langfeld/openchamber-limit-prognose.git`
 2. In OpenChamber: Einstellungen → Erweiterungen. Unter „Ordner, ZIP oder URL“ den Pfad eintragen oder „Ordner durchsuchen“, dann „Hinzufügen“.
@@ -27,10 +27,11 @@ Danach erscheint der Abschnitt „Limit-Prognose“ im Arbeitsstatus-Panel recht
 Das Icon der Erweiterung in der rechten Leiste öffnet ihre Einstellungen. Jede Änderung gilt sofort.
 
 - **Anbieter:** Anfangs dieselbe Auswahl wie im Abschnitt „Nutzung“. Sobald du hier etwas änderst, gilt die eigene Auswahl. „Auswahl aus ‚Nutzung‘ übernehmen“ stellt das zurück. Der Abschnitt zeigt nur Anbieter, die ein Wochenlimit melden.
-- **Schriftgröße:** Stell hier denselben Wert ein wie in OpenChamber unter „Schriftgröße der Benutzeroberfläche“. Die Abstände passt der Abschnitt selbst an: Er errechnet sie aus der Breite des Panels, die mit der Einstellung „Abstände“ wächst.
 - **Leistenhöhe:** 4 px entspricht der Leiste unter „Kontext“.
 - **Tagesmarken:** schalten die Lücken für die Tage seit dem Reset ein oder aus. Ab Werk an.
 - **Neu laden alle:** 5 bis 60 Minuten. Nach einem Fehler und wenn eine Prognose beginnt, lädt der Abschnitt von selbst früher.
+
+Schrift und Abstände stellst du nicht hier ein, sie folgen OpenChamber. Die Schrift übernimmt die Erweiterung aus „Schriftgröße der Benutzeroberfläche“, auch wenn du sie änderst, während sie läuft. Die Abstände errechnet sie aus der Breite des Panels, die mit der Einstellung „Abstände“ wächst.
 
 ## Aufbau
 

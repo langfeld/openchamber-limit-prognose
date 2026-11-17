@@ -18,7 +18,7 @@ const WEEK = 7 * 24 * 60 * 60 * 1000;
 const READ_BUDGET_MS = 1500;
 const REFRESH_MIN_MS = 300;
 const SETTINGS_WAIT_MS = 400;
-const DEFAULTS = { textSize: 100, barHeight: 4, interval: 10, dayMarks: true, providers: null };
+const DEFAULTS = { barHeight: 4, interval: 10, dayMarks: true, providers: null };
 
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -277,7 +277,7 @@ describe('forecast', () => {
 
   it('remembers the frame the section measured, for checking the sizes', async () => {
     await pause(REFRESH_MIN_MS + 50);
-    const measured = { width: 274, inner: 274, client: 274, dpr: 1, textSize: 110, spaceScale: 1, bar: 4 };
+    const measured = { width: 274, inner: 274, client: 274, dpr: 1, fontSize: '15.4px', rootPx: 17.6, spaceScale: 1, bar: 4 };
     await ask(`/forecast?frame=${encodeURIComponent(JSON.stringify(measured))}`);
     const health = await (await ask('/health')).json();
     assert.equal(health.ok, true);
@@ -293,12 +293,13 @@ describe('settings', () => {
   it('keeps settings, cleans them, and saves them to its data folder', async () => {
     const { body: current } = await askJson('GET', '/settings');
     assert.deepEqual(current.settings, DEFAULTS);
-    const { status, body } = await askJson('PUT', '/settings', { ...DEFAULTS, textSize: 110, barHeight: 999 });
+    // A key the settings no longer have, like the old text size, drops out.
+    const { status, body } = await askJson('PUT', '/settings', { ...DEFAULTS, interval: 30, barHeight: 999, textSize: 110 });
     assert.equal(status, 200);
     assert.ok(body.version > current.version);
-    assert.deepEqual(body.settings, { ...DEFAULTS, textSize: 110 });
+    assert.deepEqual(body.settings, { ...DEFAULTS, interval: 30 });
     const saved = JSON.parse(await fs.readFile(path.join(dataDir, 'einstellungen.json'), 'utf8'));
-    assert.deepEqual(saved, { ...DEFAULTS, textSize: 110 });
+    assert.deepEqual(saved, { ...DEFAULTS, interval: 30 });
     assert.equal((await askJson('PUT', '/settings', '{ not json')).status, 400);
   });
 

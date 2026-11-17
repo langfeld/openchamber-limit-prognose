@@ -9,7 +9,7 @@ import { normalizeSettings } from '../service/settings.js';
 import { messagesFor } from './i18n.js';
 import { renderSection } from './render.js';
 import { STYLE } from './style.js';
-import { barGeometry, measureFrameWidth, rootFontSize, spacingScaleFor } from './text-scale.js';
+import { BASE_FONT_PX, barGeometry, hostRootPx, measureFrameWidth, spacingScaleFor } from './text-scale.js';
 
 /** After a failed read the next one follows in 30 s, then each wait doubles up to the interval. */
 const RETRY_MS = 30 * 1000;
@@ -42,6 +42,10 @@ let controlsSupported = false;
 let controlsShown = false;
 /** What the page measured and set, sent along with each reading for checking (`/health`). */
 let frame = {};
+/** The body text size the host passed, as it came. */
+let hostFontSize = null;
+/** The app's root in px, which the page's rem follows. */
+let rootPx = BASE_FONT_PX;
 let spaceScale = 1;
 let inFlight = 0;
 let requested = 0;
@@ -63,14 +67,14 @@ const render = () => {
   }));
 };
 
-/** Text size and bar height from the settings, spacing worked out from the frame's width. */
+/** Text size from the host, spacing worked out from the frame's width, bar height from the settings. */
 const applyScale = () => {
   const html = document.documentElement;
-  html.style.fontSize = rootFontSize(settings.textSize);
+  html.style.fontSize = `${rootPx}px`;
   const width = measureFrameWidth();
-  spaceScale = spacingScaleFor(width, settings.textSize);
+  spaceScale = spacingScaleFor(width, rootPx);
   const dpr = window.devicePixelRatio || 1;
-  const geometry = barGeometry({ barHeight: settings.barHeight, textSize: settings.textSize, spaceScale, dpr });
+  const geometry = barGeometry({ barHeight: settings.barHeight, rootPx, spaceScale, dpr });
   html.style.setProperty('--lp-space', String(spaceScale));
   html.style.setProperty('--lp-bar-h', `${geometry.bar}px`);
   html.style.setProperty('--lp-mark-h', `${geometry.mark}px`);
@@ -82,7 +86,8 @@ const applyScale = () => {
     inner: window.innerWidth,
     client: html.clientWidth,
     dpr,
-    textSize: settings.textSize,
+    fontSize: hostFontSize,
+    rootPx,
     spaceScale,
     bar: geometry.bar,
   };
@@ -211,8 +216,11 @@ host.onStatusControl((event) => {
 host.onDirectory(() => publishControls());
 
 host.onReady((context) => {
-  // `applyHostReady` sets the root to 0.875rem on every snapshot; the text size replaces it.
+  // `applyHostReady` sets the root to 0.875rem on every snapshot; the app's
+  // root replaces it. A changed interface size arrives as a new snapshot.
   applyHostReady(context, document.documentElement);
+  hostFontSize = context.theme?.tokens?.fontSize ?? null;
+  rootPx = hostRootPx(hostFontSize);
   applyScale();
   messages = messagesFor(context.locale);
   document.documentElement.lang = messages.locale;

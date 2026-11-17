@@ -5,11 +5,10 @@
 import { connectHost } from '@openchamber/sdk';
 import { applyHostReady, mountButton, mountCheckbox, mountSelect, mountSwitch } from '@openchamber/sdk/ui';
 
-import { BAR_HEIGHTS, INTERVALS, normalizeSettings, TEXT_SIZES } from '../service/settings.js';
+import { BAR_HEIGHTS, INTERVALS, normalizeSettings } from '../service/settings.js';
 import { messagesFor } from './i18n.js';
+import { BODY_TEXT_REM, hostRootPx } from './text-scale.js';
 
-/** The SDK's own root size, which the panel's controls are drawn for. */
-const SDK_ROOT_PX = 14;
 const SETTINGS_RETRY_MS = 5 * 1000;
 
 const STYLE = `
@@ -60,8 +59,6 @@ const accept = (answer) => {
   if (typeof answer?.version !== 'number' || answer.version <= version) return false;
   version = answer.version;
   settings = normalizeSettings(answer.settings);
-  // The controls are drawn for the SDK's root; the text size scales them like the app.
-  document.documentElement.style.fontSize = `${(SDK_ROOT_PX * settings.textSize) / 100}px`;
   return true;
 };
 
@@ -151,13 +148,6 @@ const render = () => {
   display.className = 'lp-group';
   display.append(heading('h2', text.display));
   mount(display, mountSelect, {
-    label: text.textSize,
-    value: String(settings.textSize),
-    options: TEXT_SIZES.map((size) => ({ id: String(size), label: `${size} %` })),
-    onChange: (id) => void save({ textSize: Number(id) }),
-  });
-  display.append(muted(text.textSizeHint));
-  mount(display, mountSelect, {
     label: text.barHeight,
     value: String(settings.barHeight),
     options: BAR_HEIGHTS.map((px) => ({ id: String(px), label: text.barHeightOption(px) })),
@@ -216,8 +206,11 @@ host.onReady((context) => {
   applyHostReady(context, document.documentElement);
   messages = messagesFor(context.locale);
   document.documentElement.lang = messages.locale;
-  // `applyHostReady` resets the root size on every snapshot.
-  document.documentElement.style.fontSize = `${(SDK_ROOT_PX * settings.textSize) / 100}px`;
+  // The SDK draws its controls for a 14px root, the app's body text at 100%.
+  // The host's body text scales them as the app scales its own; a changed
+  // interface size arrives as a new snapshot. `applyHostReady` resets the
+  // root on every snapshot, so this follows it.
+  document.documentElement.style.fontSize = `${hostRootPx(context.theme?.tokens?.fontSize) * BODY_TEXT_REM}px`;
   render();
   if (booted) return;
   booted = true;
